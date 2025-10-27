@@ -5,9 +5,9 @@ import Code from 'astro/components/Code.astro';
 import LayoutSidebar from '../../app/LayoutSidebar.astro';
 import { getUsers, getProducts } from '../../services/index.js';
 
-const products = JSON.stringify(getProducts(), null, 2);
+const products = JSON.stringify(await getProducts(), null, 2);
 
-const users = JSON.stringify(getUsers(), null, 2);
+const users = JSON.stringify(await getUsers(), null, 2);
 ---
 
 <LayoutSidebar class="bg-slate-800 text-slate-100">

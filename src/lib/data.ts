@@ -9,7 +9,31 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 
 	console.info(`Fetching ${apiEndpoint}…`);
 
-	// Try to fetch from API first
+	// Check if we're in build mode (static generation)
+	const isBuildMode = import.meta.env.MODE === 'production' && !import.meta.env.SSR;
+
+	// During build mode, directly use local data to avoid connection errors
+	if (isBuildMode) {
+		try {
+			let data;
+			if (endpoint === 'products') {
+				const module = await import('../../data/products.json', { assert: { type: 'json' } });
+				data = module.default;
+			} else if (endpoint === 'users') {
+				const module = await import('../../data/users.json', { assert: { type: 'json' } });
+				data = module.default;
+			} else {
+				throw new Error(`Unknown endpoint: ${endpoint}`);
+			}
+			console.info(`Using local data for ${endpoint} (build mode)`);
+			return data;
+		} catch (localError) {
+			console.error(`Could not load local data for ${endpoint}:`, localError);
+			return [];
+		}
+	}
+
+	// Try to fetch from API first in dev mode
 	try {
 		const response = await fetch(apiEndpoint);
 		if (!response.ok) {
@@ -23,8 +47,17 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 
 		// Fallback to local data files
 		try {
-			const { default: data } = await import(`../../data/${endpoint}.json`);
-			console.info(`Using local data for ${endpoint}`);
+			let data;
+			if (endpoint === 'products') {
+				const module = await import('../../data/products.json', { assert: { type: 'json' } });
+				data = module.default;
+			} else if (endpoint === 'users') {
+				const module = await import('../../data/users.json', { assert: { type: 'json' } });
+				data = module.default;
+			} else {
+				throw new Error(`Unknown endpoint: ${endpoint}`);
+			}
+			console.info(`Using local data for ${endpoint} (fallback)`);
 			return data;
 		} catch (localError) {
 			console.error(`Could not load local data for ${endpoint}:`, localError);

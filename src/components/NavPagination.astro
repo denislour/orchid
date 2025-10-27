@@ -79,5 +79,16 @@
 </nav-pagination>
 
 <script>
-	// ...
+	// Pagination functionality
+	document.addEventListener('DOMContentLoaded', () => {
+		const paginationLinks = document.querySelectorAll('nav-pagination a');
+
+		paginationLinks.forEach(link => {
+			link.addEventListener('click', (e) => {
+				e.preventDefault();
+				// Handle pagination navigation
+				console.log('Pagination link clicked:', link.textContent);
+			});
+		});
+	});
 </script>

@@ -3,22 +3,35 @@ import { faker } from '@faker-js/faker';
 import { RANDOMIZE } from '../app/constants.js';
 import type { Users } from '../types/entities.js';
 
-import usersStaticJSON from '../../data/users.json' assert { type: 'json' };
+let usersStaticData: Users | null = null;
 
-const usersStaticData: Users = usersStaticJSON;
+async function loadUsersData() {
+	if (!usersStaticData) {
+		try {
+			const { default: data } = await import('../../data/users.json', { assert: { type: 'json' } });
+			usersStaticData = data as Users;
+		} catch (error) {
+			console.error('Failed to load users data:', error);
+			usersStaticData = [];
+		}
+	}
+	return usersStaticData;
+}
 
-export function getUsers(randomize = RANDOMIZE) {
+export async function getUsers(randomize = RANDOMIZE) {
 	console.log('getUsers');
 
+	const data = await loadUsersData();
+
 	const result = randomize
-		? usersStaticData.map((p) => {
+		? data.map((p) => {
 				p.name = faker.name.fullName();
 				p.email = faker.internet.email();
 				p.position = faker.name.jobTitle();
 				p.country = faker.address.country();
 				return p;
 		  })
-		: usersStaticData;
+		: data;
 
 	return result;
 }

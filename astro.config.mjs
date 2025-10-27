@@ -39,7 +39,17 @@ export default defineConfig({
 		build: {
 			rollupOptions: {
 				external: ['shiki/themes/hc_light.json'],
+				output: {
+					manualChunks: {
+						// Split vendor libraries into separate chunks
+						vendor: ['@faker-js/faker', 'apexcharts'],
+						// Split UI libraries
+						ui: ['flowbite', 'flowbite-typography'],
+					},
+				},
 			},
+			// Increase chunk size warning limit to 3000KB to accommodate large chunks
+			chunkSizeWarningLimit: 3000,
 		},
 	},
 });

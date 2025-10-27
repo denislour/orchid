@@ -46,5 +46,37 @@ const { title } = Astro.props;
 </div>
 
 <script>
-	// Upload handler...
+	// Upload handler functionality
+	const uploadButton = document.querySelector('button[type="button"]');
+	const deleteButton = document.querySelectorAll('button[type="button"]')[1];
+
+	if (uploadButton) {
+		uploadButton.addEventListener('click', () => {
+			// Create a file input element
+			const fileInput = document.createElement('input');
+			fileInput.type = 'file';
+			fileInput.accept = 'image/*';
+			fileInput.style.display = 'none';
+
+			fileInput.addEventListener('change', (e) => {
+				const target = e.target as HTMLInputElement;
+				const file = target.files?.[0];
+				if (file) {
+					// Handle file upload here
+					console.log('File selected for upload:', file.name);
+				}
+			});
+
+			document.body.appendChild(fileInput);
+			fileInput.click();
+			document.body.removeChild(fileInput);
+		});
+	}
+
+	if (deleteButton) {
+		deleteButton.addEventListener('click', () => {
+			// Handle delete action
+			console.log('Delete action triggered');
+		});
+	}
 </script>
