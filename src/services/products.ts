@@ -8,7 +8,9 @@ let productsStaticData: Products | null = null;
 async function loadProductsData() {
 	if (!productsStaticData) {
 		try {
-			const { default: data } = await import('../../data/products.json', { assert: { type: 'json' } });
+			const { default: data } = await import('../../data/products.json', {
+				assert: { type: 'json' },
+			});
 			productsStaticData = data as Products;
 		} catch (error) {
 			console.error('Failed to load products data:', error);
@@ -29,7 +31,7 @@ export async function getProducts(randomize = RANDOMIZE) {
 				p.technology = faker.commerce.productName();
 				p.description = faker.commerce.productDescription();
 				return p;
-		  })
+			})
 		: data;
 
 	return result;

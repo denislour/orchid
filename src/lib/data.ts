@@ -10,17 +10,22 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 	console.info(`Fetching ${apiEndpoint}…`);
 
 	// Check if we're in build mode (static generation)
-	const isBuildMode = import.meta.env.MODE === 'production' && !import.meta.env.SSR;
+	const isBuildMode =
+		import.meta.env.MODE === 'production' && !import.meta.env.SSR;
 
 	// During build mode, directly use local data to avoid connection errors
 	if (isBuildMode) {
 		try {
 			let data;
 			if (endpoint === 'products') {
-				const module = await import('../../data/products.json', { assert: { type: 'json' } });
+				const module = await import('../../data/products.json', {
+					assert: { type: 'json' },
+				});
 				data = module.default;
 			} else if (endpoint === 'users') {
-				const module = await import('../../data/users.json', { assert: { type: 'json' } });
+				const module = await import('../../data/users.json', {
+					assert: { type: 'json' },
+				});
 				data = module.default;
 			} else {
 				throw new Error(`Unknown endpoint: ${endpoint}`);
@@ -39,7 +44,7 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
-		return await response.json() as unknown as Promise<
+		return (await response.json()) as unknown as Promise<
 			ReturnType<EndpointsToOperations[Selected]>
 		>;
 	} catch (e) {
@@ -49,10 +54,14 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 		try {
 			let data;
 			if (endpoint === 'products') {
-				const module = await import('../../data/products.json', { assert: { type: 'json' } });
+				const module = await import('../../data/products.json', {
+					assert: { type: 'json' },
+				});
 				data = module.default;
 			} else if (endpoint === 'users') {
-				const module = await import('../../data/users.json', { assert: { type: 'json' } });
+				const module = await import('../../data/users.json', {
+					assert: { type: 'json' },
+				});
 				data = module.default;
 			} else {
 				throw new Error(`Unknown endpoint: ${endpoint}`);

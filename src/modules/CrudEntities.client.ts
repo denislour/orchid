@@ -7,7 +7,7 @@ import { endpointsToOperations } from '../pages/api/[...entity].js';
 export class CrudEntities extends HTMLElement {
 	#body = this.querySelector('tbody')!;
 
-	#rows = this.#body.querySelectorAll('tr')!;
+	#rows = this.#body.querySelectorAll('tr');
 
 	#refreshButton = this.querySelector('[data-refresh]');
 

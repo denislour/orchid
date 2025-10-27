@@ -1,4 +1,5 @@
 ---
+
 ---
 
 <nav-pagination
@@ -83,7 +84,7 @@
 	document.addEventListener('DOMContentLoaded', () => {
 		const paginationLinks = document.querySelectorAll('nav-pagination a');
 
-		paginationLinks.forEach(link => {
+		paginationLinks.forEach((link) => {
 			link.addEventListener('click', (e) => {
 				e.preventDefault();
 				// Handle pagination navigation

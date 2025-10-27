@@ -101,12 +101,15 @@ export const del: APIRoute = async ({ params }) => {
 
 	// In a real application, you would delete the resource here
 	// For now, we'll just return a success message
-	return new Response(JSON.stringify({ success: true, message: 'Resource deleted' }), {
-		status: 200,
-		headers: {
-			'Content-Type': 'application/json',
+	return new Response(
+		JSON.stringify({ success: true, message: 'Resource deleted' }),
+		{
+			status: 200,
+			headers: {
+				'Content-Type': 'application/json',
+			},
 		},
-	});
+	);
 };
 
 /* Astro's static build helper, can be removed for SSR mode */

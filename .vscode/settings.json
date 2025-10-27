@@ -6,7 +6,7 @@
 
 	/* —————————————————————————————— Tailwind ———————————————————————————————— */
 	"tailwindCSS.includeLanguages": {
-		/* 
+		/*
 		   Astro Language Server can handle Tailwind extension communication,
 			 see https://docs.astro.build/en/guides/integrations-guide/tailwind/#configuring-the-integration
 			 But if you had troubles like me, you can force the association here.
@@ -32,8 +32,21 @@
 	/* Add support for `prettier-plugin-astro` */
 	"prettier.documentSelectors": ["**/*.astro"],
 	"[astro]": {
+		"editor.defaultFormatter": "astro-build.astro-vscode"
+	},
+	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[html]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+
+	/* —————————————————————————————— Auto Format ————————————————————————————— */
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
 
 	/* —————————————————————————————— Misc. ———————————————————————————————— */
 

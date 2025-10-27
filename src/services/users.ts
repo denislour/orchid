@@ -8,7 +8,9 @@ let usersStaticData: Users | null = null;
 async function loadUsersData() {
 	if (!usersStaticData) {
 		try {
-			const { default: data } = await import('../../data/users.json', { assert: { type: 'json' } });
+			const { default: data } = await import('../../data/users.json', {
+				assert: { type: 'json' },
+			});
 			usersStaticData = data as Users;
 		} catch (error) {
 			console.error('Failed to load users data:', error);
@@ -30,7 +32,7 @@ export async function getUsers(randomize = RANDOMIZE) {
 				p.position = faker.name.jobTitle();
 				p.country = faker.address.country();
 				return p;
-		  })
+			})
 		: data;
 
 	return result;

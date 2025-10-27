@@ -36,12 +36,14 @@ Orchid is a modern and responsive admin dashboard template that provides a clean
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/orchid.git
    cd orchid
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    # or
@@ -51,6 +53,7 @@ Orchid is a modern and responsive admin dashboard template that provides a clean
    ```
 
 3. Start the development server:
+
    ```bash
    npm run dev
    # or
