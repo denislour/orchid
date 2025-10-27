@@ -1,0 +1,13 @@
+{
+	"extends": "astro/tsconfigs/base",
+	"compilerOptions": {
+		"strictNullChecks": true,
+		"verbatimModuleSyntax": true,
+		"strict": true,
+		"allowImportingTsExtensions": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
+	}
+}
