@@ -1,0 +1,121 @@
+# Common environment variables
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# Common IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Common OS files
+.DS_Store
+Thumbs.db
+
+# Common logs
+*.log
+
+# Common temporary files
+tmp/
+temp/
+
+# Common build artifacts (general)
+build/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Documentation build
+docs/_build/
+docs/site/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Local development files
+.local/
+local/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+# Note: node_modules/ and vendor/ are handled in their respective .gitignore files
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/

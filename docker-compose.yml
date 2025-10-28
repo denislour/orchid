@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: orchid_traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - orchid_network
+    depends_on:
+      - frontend
+      - backend
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: orchid_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: orchid_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./orchid_be/migrations:/docker-entrypoint-initdb.d
+      - ./orchid_be/scripts:/scripts
+    networks:
+      - orchid_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./orchid_be
+      dockerfile: Dockerfile
+    container_name: orchid_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: orchid_db
+      DATABASE_SSLMODE: disable
+
+      SERVER_PORT: 8000
+      SERVER_MODE: release
+
+      MIGRATIONS_PATH: ./migrations
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend.middlewares=backend-stripprefix"
+      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.priority=10"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - orchid_network
+    volumes:
+      - ./orchid_be/configs:/app/configs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./orchid_fe
+      dockerfile: Dockerfile
+    container_name: orchid_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://backend:8000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.priority=1"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - orchid_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  orchid_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
