@@ -1,0 +1,11 @@
+server:
+  port: "${SERVER_PORT:8000}"
+  mode: "${SERVER_MODE:debug}"
+
+database:
+  host: "${DATABASE_HOST:localhost}"
+  port: "${DATABASE_PORT:5432}"
+  user: "${DATABASE_USER:postgres}"
+  password: "${DATABASE_PASSWORD:password}"
+  dbname: "${DATABASE_NAME:orchid_db}"
+  sslmode: "${DATABASE_SSLMODE:disable}"
