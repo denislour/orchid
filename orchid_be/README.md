@@ -1,75 +1,75 @@
 # Orchid Backend
 
-Backend API được xây dựng với Go và PostgreSQL.
+Backend API built with Go and PostgreSQL.
 
-## Cài đặt dependencies
+## Install Dependencies
 
 ```bash
 go mod tidy
 ```
 
-## Development với Air (Live Reload)
+## Development with Air (Live Reload)
 
-### Cài đặt Air
+### Install Air
 
-Sử dụng script cài đặt:
+Using script:
 ```bash
 chmod +x scripts/install_air.sh
 ./scripts/install_air.sh
 ```
 
-Hoặc cài đặt thủ công:
+Or install manually:
 ```bash
 go install github.com/air-verse/air@latest
 ```
 
-### Chạy server với Air
+### Run Server with Air
 
 ```bash
 air
 ```
 
-Air sẽ tự động:
-- Build và chạy server
-- Watch các thay đổi trong code
-- Restart server khi có thay đổi
-- Build binary đến thư mục `./bin/api`
-- Exclude các thư mục không cần thiết (vendor, tmp, .git, bin, docs, migrations, scripts, tests)
+Air will automatically:
+- Build and run server
+- Watch for code changes
+- Restart server when changes are made
+- Build binary to `./bin/api` directory
+- Exclude unnecessary folders (vendor, tmp, .git, bin, docs, migrations, scripts, tests)
 
-### Config Air
+### Air Configuration
 
-File config Air đã được tạo tại `.air.toml` với các thiết lập tối ưu cho development:
-- Build binary đến `./bin/api`
-- Auto-restart khi code thay đổi
-- Exclude test files và các thư mục không cần watch
+Air config file is created at `.air.toml` with optimal settings for development:
+- Build binary to `./bin/api`
+- Auto-restart when code changes
+- Exclude test files and unnecessary folders from watching
 
-## Build project
+## Build Project
 
 ```bash
 go build -o bin/api cmd/api/main.go
 ```
 
-## Run server (không dùng Air)
+## Run Server (without Air)
 
 ```bash
 go run cmd/api/main.go
 ```
 
-Server sẽ chạy trên port 8080.
+Server will run on port 8000.
 
-## Cấu hình database
+## Database Configuration
 
-1. Tạo database PostgreSQL:
+1. Create PostgreSQL database:
 ```sql
 CREATE DATABASE orchid_db;
 ```
 
-2. Chạy migration:
+2. Run migration:
 ```bash
 psql -d orchid_db -f migrations/001_create_users_table.sql
 ```
 
-3. Cấu hình kết nối trong file `configs/config.yaml`:
+3. Configure connection in `configs/config.yaml` file:
 ```yaml
 database:
   host: "localhost"
