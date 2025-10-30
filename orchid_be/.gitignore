@@ -22,7 +22,7 @@ go.work
 
 # Go modules download cache
 *.mod
-*.sum
+# *.sum  # Allow go.sum for dependency locking
 
 # Build artifacts specific to Go
 bin/

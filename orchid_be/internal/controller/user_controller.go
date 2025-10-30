@@ -19,6 +19,17 @@ func NewUserController(userService service.UserService) *UserController {
 	}
 }
 
+// GetUsers godoc
+// @Summary Get all users
+// @Description Get paginated list of users
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /api/users [get]
 func (c *UserController) GetUsers(ctx *gin.Context) {
 	page, limit := c.GetPageAndLimitFromQuery(ctx)
 
@@ -31,6 +42,17 @@ func (c *UserController) GetUsers(ctx *gin.Context) {
 	c.SendPaginationResponse(ctx, users, total, page, limit)
 }
 
+// GetUserByID godoc
+// @Summary Get user by ID
+// @Description Get a single user by their ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /api/users/{id} [get]
 func (c *UserController) GetUserByID(ctx *gin.Context) {
 	id, err := c.GetIDFromURL(ctx)
 	if err != nil {
@@ -47,6 +69,16 @@ func (c *UserController) GetUserByID(ctx *gin.Context) {
 	utils.Success(ctx, "User retrieved successfully", user)
 }
 
+// CreateUser godoc
+// @Summary Create new user
+// @Description Create a new user with name, email and password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body service.CreateUserRequest true "User data"
+// @Success 201 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /api/users [post]
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req service.CreateUserRequest
 
@@ -64,6 +96,18 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	utils.Created(ctx, "User created successfully", user)
 }
 
+// UpdateUser godoc
+// @Summary Update user
+// @Description Update user information by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body service.UpdateUserRequest true "User data"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /api/users/{id} [put]
 func (c *UserController) UpdateUser(ctx *gin.Context) {
 	id, err := c.GetIDFromURL(ctx)
 	if err != nil {
@@ -86,6 +130,17 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	utils.Success(ctx, "User updated successfully", user)
 }
 
+// DeleteUser godoc
+// @Summary Delete user
+// @Description Delete a user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /api/users/{id} [delete]
 func (c *UserController) DeleteUser(ctx *gin.Context) {
 	id, err := c.GetIDFromURL(ctx)
 	if err != nil {

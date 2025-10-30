@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"orchid_be/docs"
 	"orchid_be/internal/config"
 	"orchid_be/internal/controller"
 	"orchid_be/internal/migration"
@@ -12,6 +13,8 @@ import (
 	"orchid_be/internal/service"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -61,6 +64,10 @@ func main() {
 
 	userController.SetupRoutes(router)
 
+	// Setup Swagger documentation
+	docs.SwaggerInfo.BasePath = "/api"
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
@@ -72,6 +79,9 @@ func main() {
 	log.Printf("Server starting on %s", addr)
 	log.Printf("Health check available at http://localhost%s/health", addr)
 	log.Printf("API endpoints available at http://localhost%s/api", addr)
+	log.Printf("Swagger documentation available at http://localhost%s/swagger/index.html", addr)
+	log.Printf("API endpoints available at http://localhost%s/api", addr)
+	log.Printf("Swagger documentation available at http://localhost%s/swagger/index.html", addr)
 
 	if err := router.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

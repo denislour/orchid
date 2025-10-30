@@ -9,8 +9,10 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      - "--log.level=DEBUG"
     ports:
       - "3000:80"
       - "443:443"
@@ -30,10 +32,6 @@ services:
     container_name: orchid_postgres
     restart: unless-stopped
     env_file: .env
-    environment:
-      POSTGRES_DB: orchid_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
@@ -55,24 +53,26 @@ services:
     container_name: orchid_backend
     restart: unless-stopped
     env_file: .env
-    environment:
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: password
-      DATABASE_NAME: orchid_db
-      DATABASE_SSLMODE: disable
-
-      SERVER_PORT: 8000
-      SERVER_MODE: release
-
-      MIGRATIONS_PATH: ./migrations
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.priority=10"
+      - "traefik.http.routers.backend-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-api.entrypoints=web"
+      - "traefik.http.routers.backend-api.service=backend-api-service"
+      - "traefik.http.services.backend-api-service.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend-api.priority=10"
+
+      # Add Swagger route with explicit service
+      - "traefik.http.routers.swagger.rule=Host(`localhost`) && PathPrefix(`/swagger`)"
+      - "traefik.http.routers.swagger.entrypoints=web"
+      - "traefik.http.routers.swagger.service=swagger-service"
+      - "traefik.http.services.swagger-service.loadbalancer.server.port=8000"
+      - "traefik.http.routers.swagger.priority=20"
+
+      # Add health check route
+      - "traefik.http.routers.backend-health.rule=Host(`localhost`) && Path(`/health`)"
+      - "traefik.http.routers.backend-health.entrypoints=web"
+      - "traefik.http.routers.backend-health.service=backend-api-service"
+      - "traefik.http.routers.backend-health.priority=5"
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,13 +94,10 @@ services:
     container_name: orchid_frontend
     restart: unless-stopped
     env_file: .env
-    environment:
-      VITE_API_URL: http://backend:8000
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.routers.frontend.priority=1"
     depends_on:
       backend:
@@ -114,10 +111,9 @@ services:
       retries: 3
       start_period: 40s
 
+volumes:
+  postgres_data:
+
 networks:
   orchid_network:
     driver: bridge
-
-volumes:
-  postgres_data:
-    driver: local

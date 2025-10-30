@@ -27,6 +27,8 @@ COPY --from=builder /app/configs ./configs
 
 COPY --from=builder /app/migrations ./migrations
 
+COPY --from=builder /app/docs ./docs
+
 RUN chown -R appuser:appgroup /app
 
 USER appuser
