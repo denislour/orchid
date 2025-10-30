@@ -1,0 +1,26 @@
+FROM golang:1.23-alpine AS development
+
+RUN apk add --no-cache git curl
+
+WORKDIR /app
+
+# Install Air compatible with Go 1.23
+RUN go install github.com/cosmtrek/air@v1.49.0 && \
+    echo 'export PATH="$PATH:/root/go/bin"' >> ~/.bashrc && \
+    export PATH="$PATH:/root/go/bin"
+
+# Make sure Air is in PATH
+ENV PATH="/root/go/bin:${PATH}"
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Create tmp directory for Air
+RUN mkdir -p tmp
+
+EXPOSE 8000
+
+# Run with Air for live reload using full path
+CMD ["/root/go/bin/air", "-c", ".air.toml"]

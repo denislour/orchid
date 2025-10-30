@@ -49,24 +49,22 @@ services:
   backend:
     build:
       context: ./orchid_be
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: orchid_backend
     restart: unless-stopped
     env_file: .env
     labels:
       - "traefik.enable=true"
+      # Internal API route - not exposed externally
       - "traefik.http.routers.backend-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend-api.entrypoints=web"
       - "traefik.http.routers.backend-api.service=backend-api-service"
       - "traefik.http.services.backend-api-service.loadbalancer.server.port=8000"
       - "traefik.http.routers.backend-api.priority=10"
-
-      # Add Swagger route with explicit service
-      - "traefik.http.routers.swagger.rule=Host(`localhost`) && PathPrefix(`/swagger`)"
-      - "traefik.http.routers.swagger.entrypoints=web"
-      - "traefik.http.routers.swagger.service=swagger-service"
-      - "traefik.http.services.swagger-service.loadbalancer.server.port=8000"
-      - "traefik.http.routers.swagger.priority=20"
+      # Make API internal only
+      - "traefik.http.routers.backend-api.middlewares=ipwhitelist"
+      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.ipstrategy.depth=1"
+      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32,::1"
 
       # Add health check route
       - "traefik.http.routers.backend-health.rule=Host(`localhost`) && Path(`/health`)"

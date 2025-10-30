@@ -65,7 +65,7 @@ func main() {
 	userController.SetupRoutes(router)
 
 	// Setup Swagger documentation
-	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.BasePath = "/"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.GET("/health", func(c *gin.Context) {
