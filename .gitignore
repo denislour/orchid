@@ -119,3 +119,7 @@ coverage/
 
 # DynamoDB Local files
 .dynamodb/
+
+
+# KiloCode and Serena directories
+.kilocode/
