@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   traefik:
@@ -12,21 +12,24 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
     ports:
-      - "80:80"
+      - "3000:80"
       - "443:443"
-      - "8080:8080"  # Traefik dashboard
+      - "8080:8080" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - orchid_network
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
 
   postgres:
     image: postgres:15-alpine
     container_name: orchid_postgres
     restart: unless-stopped
+    env_file: .env
     environment:
       POSTGRES_DB: orchid_db
       POSTGRES_USER: postgres
@@ -51,6 +54,7 @@ services:
       dockerfile: Dockerfile
     container_name: orchid_backend
     restart: unless-stopped
+    env_file: .env
     environment:
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
@@ -68,8 +72,6 @@ services:
       - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.middlewares=backend-stripprefix"
-      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.priority=10"
     depends_on:
       postgres:
@@ -91,6 +93,7 @@ services:
       dockerfile: Dockerfile
     container_name: orchid_frontend
     restart: unless-stopped
+    env_file: .env
     environment:
       VITE_API_URL: http://backend:8000
     labels:

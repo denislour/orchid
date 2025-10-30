@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Create trigger to automatically update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+CREATE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -20,6 +21,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
