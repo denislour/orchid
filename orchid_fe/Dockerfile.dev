@@ -1,0 +1,24 @@
+FROM node:18-alpine AS development
+
+RUN apk add --no-cache curl
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN npm install -g pnpm
+
+# Install Node adapter for development
+RUN pnpm add @astrojs/node
+
+RUN pnpm install --no-frozen-lockfile
+
+COPY . .
+
+EXPOSE 4321
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4321 || exit 1
+
+# Run Astro dev server with host binding to allow external access
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "4321"]

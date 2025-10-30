@@ -1,0 +1,40 @@
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN npm install -g pnpm
+
+# Install Node adapter
+RUN pnpm add @astrojs/node
+
+RUN pnpm install --no-frozen-lockfile
+
+COPY . .
+
+RUN pnpm build
+
+FROM node:18-alpine
+
+RUN apk add --no-cache curl
+
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S astro -u 1001
+
+WORKDIR /app
+
+# Copy built files from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+
+USER astro
+
+EXPOSE 4321
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4321 || exit 1
+
+CMD ["node", "./dist/server/entry.mjs"]
