@@ -35,20 +35,21 @@ export class CrudEntities extends HTMLElement {
 		if (!this.type) return;
 
 		const newData = await fetchData(this.type);
-		console.log('UP');
 
-		this.#rows.forEach((row, index) =>
+		this.#rows.forEach((row, index) => {
+			const rowData = newData[index];
+			if (!rowData) return;
+
 			row.querySelectorAll('data').forEach((binding) => {
 				const valKey = binding.value;
-				const rowData = newData[index];
-				if (!rowData) return;
 				if (!(valKey in rowData)) return;
 
-				binding.innerText = rowData[valKey as keyof typeof rowData].toString();
-			}),
-		);
+				binding.innerText =
+					(rowData as Record<string, unknown>)[valKey]?.toString() || '';
+			});
+		});
 
-		console.log('New data received!', newData);
+		// New data received!
 	}
 }
 

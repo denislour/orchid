@@ -2,19 +2,23 @@
 // GraphQL, Databases, REST APIs, CDNs, proxies, S3, Matrix, IPFS, you name it…
 
 import { API_URL, REMOTE_ASSETS_BASE_URL } from '@/app/constants';
-import type { Endpoint, EndpointsToOperations } from '@/types/entities';
+import type { Endpoint, EndpointsToOperations, Users } from '@/types/entities';
 
 export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 	const apiEndpoint = `${API_URL}${endpoint}`;
-
-	console.info(`Fetching ${apiEndpoint}…`);
+	// Fetch data from endpoint
 
 	// Check if we're in build mode (static generation)
-	const isBuildMode =
-		import.meta.env.MODE === 'production' && !import.meta.env.SSR;
+	// const isBuildMode =
+	//	import.meta.env.MODE === 'production' && !import.meta.env.SSR;
 
+	// Build mode detection disabled for debugging
+
+	// Skip build mode for debugging - force API call
 	// During build mode, directly use local data to avoid connection errors
-	if (isBuildMode) {
+	const isBuildModeDisabled = true;
+	if (isBuildModeDisabled) {
+		// Disabled for debugging
 		try {
 			let data;
 			if (endpoint === 'products') {
@@ -30,29 +34,38 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 			} else {
 				throw new Error(`Unknown endpoint: ${endpoint}`);
 			}
-			console.info(`Using local data for ${endpoint} (build mode)`);
+
 			return data;
 		} catch (localError) {
-			console.error(`Could not load local data for ${endpoint}:`, localError);
 			return [];
 		}
 	}
 
+	// Force API call - skip build mode logic
+
 	// Try to fetch from API first in dev mode
 	try {
 		const response = await fetch(apiEndpoint);
+
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
-		return (await response.json()) as unknown as Promise<
-			ReturnType<EndpointsToOperations[Selected]>
-		>;
-	} catch (e) {
-		console.error(`API fetch failed for ${endpoint}:`, e);
 
+		const result = (await response.json()) as {
+			success: boolean;
+			data: { items?: Users[]; total?: number; page?: number; limit?: number };
+		};
+
+		// Extract data from BE response structure
+		const extractedData = result.data?.items || result.data || result;
+
+		return await Promise.resolve(
+			extractedData as ReturnType<EndpointsToOperations[Selected]>,
+		);
+	} catch (e) {
 		// Fallback to local data files
 		try {
-			let data;
+			let data: unknown;
 			if (endpoint === 'products') {
 				const module = await import('../../data/products.json', {
 					assert: { type: 'json' },
@@ -66,10 +79,10 @@ export async function fetchData<Selected extends Endpoint>(endpoint: Selected) {
 			} else {
 				throw new Error(`Unknown endpoint: ${endpoint}`);
 			}
-			console.info(`Using local data for ${endpoint} (fallback)`);
-			return data;
+
+			const typedData = data as Users;
+			return typedData;
 		} catch (localError) {
-			console.error(`Could not load local data for ${endpoint}:`, localError);
 			// Return empty array as final fallback
 			return [];
 		}

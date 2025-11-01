@@ -3,9 +3,10 @@
 
 import NavPagination from '@/components/NavPagination.astro';
 import { asset, fetchData } from '@/lib/data';
+import type { User } from '@/types/entities';
 
 const { class: clazz } = Astro.props;
-const users = await fetchData('users');
+const users = (await fetchData('users')) as User[];
 ---
 
 <entities-crud
@@ -285,7 +286,7 @@ const users = await fetchData('users');
 							class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700"
 						>
 							{
-								users.map((user) => (
+								users.map((user: User) => (
 									<div>
 										<tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
 											<td class="w-4 p-4">

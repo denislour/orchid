@@ -1,118 +1,115 @@
 version: "3.8"
 
 services:
-  traefik:
-    image: traefik:v3.0
-    container_name: orchid_traefik
-    restart: unless-stopped
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.watch=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--log.level=DEBUG"
-    ports:
-      - "3000:80"
-      - "443:443"
-      - "8080:8080" # Traefik dashboard
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - orchid_network
-    depends_on:
-      frontend:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
+    traefik:
+        image: traefik:v3.0
+        container_name: orchid_traefik
+        restart: unless-stopped
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--providers.docker.watch=true"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+            - "--log.level=DEBUG"
+        ports:
+            - "3000:80"
+            - "443:443"
+            - "8080:8080" # Traefik dashboard
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        networks:
+            - orchid_network
+        depends_on:
+            frontend:
+                condition: service_healthy
+            backend:
+                condition: service_healthy
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: orchid_postgres
-    restart: unless-stopped
-    env_file: .env
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./orchid_be/migrations:/docker-entrypoint-initdb.d
-      - ./orchid_be/scripts:/scripts
-    networks:
-      - orchid_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    postgres:
+        image: postgres:15-alpine
+        container_name: orchid_postgres
+        restart: unless-stopped
+        env_file: .env
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./orchid_be/migrations:/docker-entrypoint-initdb.d
+            - ./orchid_be/scripts:/scripts
+        networks:
+            - orchid_network
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-  backend:
-    build:
-      context: ./orchid_be
-      dockerfile: Dockerfile.prod
-    container_name: orchid_backend
-    restart: unless-stopped
-    env_file: .env
-    labels:
-      - "traefik.enable=true"
-      # Internal API route - not exposed externally
-      - "traefik.http.routers.backend-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend-api.entrypoints=web"
-      - "traefik.http.routers.backend-api.service=backend-api-service"
-      - "traefik.http.services.backend-api-service.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend-api.priority=10"
-      # Make API internal only
-      - "traefik.http.routers.backend-api.middlewares=ipwhitelist"
-      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.ipstrategy.depth=1"
-      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32,::1"
+    backend:
+        build:
+            context: ./orchid_be
+            dockerfile: Dockerfile.prod
+        container_name: orchid_backend
+        restart: unless-stopped
+        env_file: .env
+        labels:
+            - "traefik.enable=true"
+            # Internal API route - not exposed externally
+            - "traefik.http.routers.backend-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+            - "traefik.http.routers.backend-api.entrypoints=web"
+            - "traefik.http.routers.backend-api.service=backend-api-service"
+            - "traefik.http.services.backend-api-service.loadbalancer.server.port=8000"
+            - "traefik.http.routers.backend-api.priority=10"
+            # Remove IP whitelist to allow external access for development
 
-      # Add health check route
-      - "traefik.http.routers.backend-health.rule=Host(`localhost`) && Path(`/health`)"
-      - "traefik.http.routers.backend-health.entrypoints=web"
-      - "traefik.http.routers.backend-health.service=backend-api-service"
-      - "traefik.http.routers.backend-health.priority=5"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - orchid_network
-    volumes:
-      - ./orchid_be/configs:/app/configs:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+            # Add health check route
+            - "traefik.http.routers.backend-health.rule=Host(`localhost`) && Path(`/health`)"
+            - "traefik.http.routers.backend-health.entrypoints=web"
+            - "traefik.http.routers.backend-health.service=backend-api-service"
+            - "traefik.http.routers.backend-health.priority=5"
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - orchid_network
+        volumes:
+            - ./orchid_be/configs:/app/configs:ro
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
 
-  frontend:
-    build:
-      context: ./orchid_fe
-      dockerfile: Dockerfile.prod
-    container_name: orchid_frontend
-    restart: unless-stopped
-    env_file: .env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend.priority=1"
-      - "traefik.http.services.frontend.loadbalancer.server.port=4321"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - orchid_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4321"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    frontend:
+        build:
+            context: ./orchid_fe
+            dockerfile: Dockerfile.prod
+        container_name: orchid_frontend
+        restart: unless-stopped
+        env_file: .env
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
+            - "traefik.http.routers.frontend.entrypoints=web"
+            - "traefik.http.routers.frontend.priority=1"
+            - "traefik.http.services.frontend.loadbalancer.server.port=4321"
+        depends_on:
+            backend:
+                condition: service_healthy
+        networks:
+            - orchid_network
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:4321"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
 
 volumes:
-  postgres_data:
+    postgres_data:
 
 networks:
-  orchid_network:
-    driver: bridge
+    orchid_network:
+        driver: bridge

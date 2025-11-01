@@ -5,6 +5,7 @@ A full-stack web application with Go backend and Astro frontend.
 ## Project Overview
 
 Orchid is a modern web application consisting of:
+
 - **Backend**: Go API with PostgreSQL database
 - **Frontend**: Astro dashboard with Tailwind CSS and Flowbite
 
@@ -17,12 +18,14 @@ docker-compose up -d
 ```
 
 This will start:
+
 - PostgreSQL database
 - Backend API server (port 8000)
 - Frontend dashboard (port 3000)
 - Traefik reverse proxy (port 80)
 
 Access the application at:
+
 - Frontend: http://localhost
 - Backend API: http://localhost/api
 - Traefik Dashboard: http://localhost:8080
@@ -90,6 +93,7 @@ cp .env.example .env
 ## Technologies Used
 
 ### Backend
+
 - Go
 - Gin (Web Framework)
 - PostgreSQL
@@ -97,6 +101,7 @@ cp .env.example .env
 - Viper (Configuration)
 
 ### Frontend
+
 - Astro
 - TypeScript
 - Tailwind CSS
@@ -104,6 +109,14 @@ cp .env.example .env
 - ApexCharts (Charts)
 
 ### DevOps
+
 - Docker
 - Docker Compose
 - Traefik (Reverse Proxy)
+
+# Todo
+
+- Connect dc FE với BE (internal)
+- review lại cac function FE, khoan restruct lại thiết kế mà kiểm tra xem rằng data được lấy dc đâu
+- Viết lại cấu trúc BE users, products theo fe trước
+- connect với BE, và nên để ở tầng service hoặc là tầng repo (hạn chế sửa tầng UI như astro, hoặc client.ts)

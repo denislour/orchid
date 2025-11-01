@@ -13,7 +13,6 @@ async function loadProductsData() {
 			});
 			productsStaticData = data as Products;
 		} catch (error) {
-			console.error('Failed to load products data:', error);
 			productsStaticData = [];
 		}
 	}
@@ -21,8 +20,6 @@ async function loadProductsData() {
 }
 
 export async function getProducts(randomize = RANDOMIZE) {
-	console.log('getProducts');
-
 	const data = await loadProductsData();
 
 	const result = randomize

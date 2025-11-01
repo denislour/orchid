@@ -1,6 +1,7 @@
-export const API_URL = `${import.meta.env.SITE || ''}${
-	import.meta.env.BASE_URL || ''
-}api/`;
+// Use internal API URL in SSR mode (server-side), external URL in browser
+export const API_URL = import.meta.env.SSR
+	? `${import.meta.env.PUBLIC_API_URL || 'http://orchid_backend:8000/api/'}`
+	: `${import.meta.env.SITE || ''}${import.meta.env.BASE_URL || ''}api/`;
 
 export const REMOTE_ASSETS_BASE_URL = `https://flowbite-admin-dashboard.vercel.app`;
 

@@ -16,15 +16,13 @@ function parseTypeParam(endpoint: string | undefined) {
 /* Controllers */
 
 export const get: APIRoute = async ({ params /* , request */ }) => {
-	console.log('Hit!', params.entity);
-
 	const operationName = parseTypeParam(params.entity);
 
 	if (!operationName) return new Response('404', { status: 404 });
 
-	const body = await endpointsToOperations[operationName]();
+	const data = await endpointsToOperations[operationName]();
 
-	return new Response(JSON.stringify(body), {
+	return new Response(JSON.stringify(data), {
 		status: 200,
 		headers: {
 			'Content-Type': 'application/json',
@@ -35,16 +33,12 @@ export const get: APIRoute = async ({ params /* , request */ }) => {
 /* Additional HTTP method handlers */
 
 export const post: APIRoute = async ({ params, request }) => {
-	console.log('POST Hit!', params.entity);
-
 	const operationName = parseTypeParam(params.entity);
 
 	if (!operationName) return new Response('404', { status: 404 });
 
 	try {
-		const body = await request.json();
-		// In a real application, you would process the POST data here
-		// For now, we'll just return the current data
+		await request.json();
 		const data = await endpointsToOperations[operationName]();
 
 		return new Response(JSON.stringify({ success: true, data }), {
@@ -64,16 +58,14 @@ export const post: APIRoute = async ({ params, request }) => {
 };
 
 export const put: APIRoute = async ({ params, request }) => {
-	console.log('PUT Hit!', params.entity);
-
 	const operationName = parseTypeParam(params.entity);
 
 	if (!operationName) return new Response('404', { status: 404 });
 
 	try {
-		const body = await request.json();
 		// In a real application, you would update the data here
 		// For now, we'll just return the current data
+		await request.json();
 		const data = await endpointsToOperations[operationName]();
 
 		return new Response(JSON.stringify({ success: true, data }), {
@@ -92,9 +84,7 @@ export const put: APIRoute = async ({ params, request }) => {
 	}
 };
 
-export const del: APIRoute = async ({ params }) => {
-	console.log('DELETE Hit!', params.entity);
-
+export const del: APIRoute = ({ params }) => {
 	const operationName = parseTypeParam(params.entity);
 
 	if (!operationName) return new Response('404', { status: 404 });

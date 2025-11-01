@@ -3,9 +3,6 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 
-// Only import node adapter in production
-const node = process.env.NODE_ENV === 'production' ? await import('@astrojs/node') : null;
-
 const DEV_PORT = 3000;
 
 // https://astro.build/config
@@ -15,13 +12,12 @@ export default defineConfig({
 		: `http://localhost:${DEV_PORT}`,
 	base: process.env.CI ? '/orchid/orchid_fe' : undefined,
 
-	// Only use server output and adapter in production
-	...(process.env.NODE_ENV === 'production' && node ? {
-		output: 'server',
-		adapter: node({
-			mode: 'standalone'
-		})
-	} : {}),
+	// Server output configuration
+	// ...(process.env.NODE_ENV === 'production' ? {
+	// 		output: 'server',
+	// 		adapter: // Add adapter when needed
+	// 	}
+	// 	: {}),
 
 	/* Like Vercel, Netlify,… Mimicking for dev. server */
 	// trailingSlash: 'always',
