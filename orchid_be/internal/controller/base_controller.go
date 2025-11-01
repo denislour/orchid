@@ -46,17 +46,10 @@ func (c *BaseController) BindJSON(ctx *gin.Context, obj interface{}) error {
 }
 
 func (c *BaseController) SendPaginationResponse(ctx *gin.Context, data interface{}, total, page, limit int) {
-	totalPages := (total + limit - 1) / limit
-
 	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"items":      data,
-			"total":      total,
-			"page":       page,
-			"limit":      limit,
-			"total_pages": totalPages,
-		},
-		"message": "Data retrieved successfully",
+		"data":   data,
+		"total":  total,
+		"page":   page,
+		"limit":  limit,
 	})
 }

@@ -1,4 +1,3 @@
-import type { Endpoint, EndpointsToOperations } from './api';
 import type { playgroundActions } from '@/pages/playground/_actions';
 
 export type { Endpoint, EndpointsToOperations };
