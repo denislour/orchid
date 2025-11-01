@@ -7,7 +7,7 @@ import { url } from '@/lib/data';
 <!-- TODO: Dynamic dropdowns -->
 <aside
 	id="sidebar"
-	class="fixed top-0 left-0 z-20 flex flex-col flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-75 lg:flex transition-width"
+	class="fixed top-0 left-0 z-20 flex-col flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-75 lg:flex transition-width"
 	aria-label="Sidebar"
 >
 	<div
@@ -413,10 +413,11 @@ import { url } from '@/lib/data';
 		>
 			<ul class="py-1" role="none">
 				<li>
-					<a
-						href="#"
-						class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+					<button
+						type="button"
+						class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
 						role="menuitem"
+						onclick="setLanguage('en')"
 					>
 						<div class="inline-flex items-center">
 							<svg
@@ -448,13 +449,14 @@ import { url } from '@/lib/data';
 							</svg>
 							English (US)
 						</div>
-					</a>
+					</button>
 				</li>
 				<li>
-					<a
-						href="#"
-						class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+					<button
+						type="button"
+						class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
 						role="menuitem"
+						onclick="setLanguage('vi')"
 					>
 						<div class="inline-flex items-center">
 							<svg
@@ -469,13 +471,14 @@ import { url } from '@/lib/data';
 							</svg>
 							Deutsch
 						</div>
-					</a>
+					</button>
 				</li>
 				<li>
-					<a
-						href="#"
-						class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+					<button
+						type="button"
+						class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
 						role="menuitem"
+						onclick="setLanguage('es')"
 					>
 						<div class="inline-flex items-center">
 							<svg
@@ -492,13 +495,14 @@ import { url } from '@/lib/data';
 							</svg>
 							Italiano
 						</div>
-					</a>
+					</button>
 				</li>
 				<li>
-					<a
-						href="#"
-						class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+					<button
+						type="button"
+						class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
 						role="menuitem"
+						onclick="setLanguage('de')"
 					>
 						<div class="inline-flex items-center">
 							<svg
@@ -541,7 +545,7 @@ import { url } from '@/lib/data';
 							</svg>
 							中文 (繁體)
 						</div>
-					</a>
+					</button>
 				</li>
 			</ul>
 		</div>

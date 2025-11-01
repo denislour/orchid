@@ -90,21 +90,21 @@ import SearchInput from '@/components/SearchInput.astro';
 					>
 						<li>
 							<a
-								href="#"
+								href="/dashboard"
 								class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
 								>Dashboard</a
 							>
 						</li>
 						<li>
 							<a
-								href="#"
+								href="/settings"
 								class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
 								>Settings</a
 							>
 						</li>
 						<li>
 							<a
-								href="#"
+								href="/earnings"
 								class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
 								>Earnings</a
 							>
@@ -112,7 +112,7 @@ import SearchInput from '@/components/SearchInput.astro';
 					</ul>
 					<div class="py-2">
 						<a
-							href="#"
+							href="/sign-out"
 							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-white"
 							>Sign out</a
 						>
@@ -139,7 +139,7 @@ import SearchInput from '@/components/SearchInput.astro';
 				</button>
 				<!-- Dropdown menu -->
 				<div
-					class="z-20 z-50 hidden max-w-sm my-4 overflow-hidden text-base list-none bg-white divide-y divide-gray-100 rounded shadow-lg dark:divide-gray-600 dark:bg-gray-700"
+					class="z-50 hidden max-w-sm my-4 overflow-hidden text-base list-none bg-white divide-y divide-gray-100 rounded shadow-lg dark:divide-gray-600 dark:bg-gray-700"
 					id="notification-dropdown"
 				>
 					<div
@@ -149,14 +149,14 @@ import SearchInput from '@/components/SearchInput.astro';
 					</div>
 					<div>
 						<a
-							href="#"
+							href="/notifications/bonnie"
 							class="flex px-4 py-3 border-b hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600"
 						>
 							<div class="flex-shrink-0">
 								<img
 									class="rounded-full w-11 h-11"
 									src={asset('images/users/bonnie-green.png')}
-									alt="Jese image"
+									alt="Jese"
 								/>
 								<div
 									class="absolute flex items-center justify-center w-5 h-5 ml-6 -mt-5 border border-white rounded-full bg-primary-700 dark:border-gray-700"
@@ -191,14 +191,14 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/notifications/jese"
 							class="flex px-4 py-3 border-b hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600"
 						>
 							<div class="flex-shrink-0">
 								<img
 									class="rounded-full w-11 h-11"
 									src={asset('images/users/jese-leos.png')}
-									alt="Jese image"
+									alt="Jese"
 								/>
 								<div
 									class="absolute flex items-center justify-center w-5 h-5 ml-6 -mt-5 bg-gray-900 border border-white rounded-full dark:border-gray-700"
@@ -232,14 +232,14 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/notifications/joseph"
 							class="flex px-4 py-3 border-b hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600"
 						>
 							<div class="flex-shrink-0">
 								<img
 									class="rounded-full w-11 h-11"
 									src={asset('images/users/joseph-mcfall.png')}
-									alt="Joseph image"
+									alt="Joseph"
 								/>
 								<div
 									class="absolute flex items-center justify-center w-5 h-5 ml-6 -mt-5 bg-red-600 border border-white rounded-full dark:border-gray-700"
@@ -274,14 +274,14 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/notifications/leslie"
 							class="flex px-4 py-3 border-b hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600"
 						>
 							<div class="flex-shrink-0">
 								<img
 									class="rounded-full w-11 h-11"
 									src={asset('images/users/leslie-livingston.png')}
-									alt="Leslie image"
+									alt="Leslie"
 								/>
 								<div
 									class="absolute flex items-center justify-center w-5 h-5 ml-6 -mt-5 bg-green-400 border border-white rounded-full dark:border-gray-700"
@@ -317,14 +317,14 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/notifications/robert"
 							class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<div class="flex-shrink-0">
 								<img
 									class="rounded-full w-11 h-11"
 									src={asset('images/users/robert-brown.png')}
-									alt="Robert image"
+									alt="Robert"
 								/>
 								<div
 									class="absolute flex items-center justify-center w-5 h-5 ml-6 -mt-5 bg-purple-500 border border-white rounded-full dark:border-gray-700"
@@ -358,7 +358,7 @@ import SearchInput from '@/components/SearchInput.astro';
 						</a>
 					</div>
 					<a
-						href="#"
+						href="/notifications"
 						class="block py-2 text-base font-normal text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:underline"
 					>
 						<div class="inline-flex items-center">
@@ -396,8 +396,8 @@ import SearchInput from '@/components/SearchInput.astro';
 				</button>
 				<!-- Dropdown menu -->
 				<div
-					class="z-20 z-50 hidden max-w-sm my-4 overflow-hidden text-base list-none bg-white divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 dark:divide-gray-600"
-					id="apps-dropdown"
+					class="z-50 hidden my-4 max-w-sm text-base list-none bg-white divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 dark:divide-gray-600"
+					id="user-dropdown"
 				>
 					<div
 						class="block px-4 py-2 text-base font-medium text-center text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
@@ -406,7 +406,7 @@ import SearchInput from '@/components/SearchInput.astro';
 					</div>
 					<div class="grid grid-cols-3 gap-4 p-4">
 						<a
-							href="#"
+							href="/dashboard"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -424,7 +424,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/users"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -441,7 +441,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/products"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -459,7 +459,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/authentication/sign-in"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -477,7 +477,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/authentication/sign-up"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -495,7 +495,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/pricing"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -513,7 +513,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/contact"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -533,7 +533,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/404"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -551,7 +551,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							</div>
 						</a>
 						<a
-							href="#"
+							href="/500"
 							class="block p-4 text-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						>
 							<svg
@@ -590,7 +590,7 @@ import SearchInput from '@/components/SearchInput.astro';
 							<img
 								class="w-8 h-8 rounded-full"
 								src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-								alt="user photo"
+								alt="User avatar"
 							/>
 						</button>
 					</div>
@@ -613,28 +613,28 @@ import SearchInput from '@/components/SearchInput.astro';
 						<ul class="py-1" role="none">
 							<li>
 								<a
-									href="#"
+									href="/dashboard"
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 									role="menuitem">Dashboard</a
 								>
 							</li>
 							<li>
 								<a
-									href="#"
+									href="/settings"
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 									role="menuitem">Settings</a
 								>
 							</li>
 							<li>
 								<a
-									href="#"
+									href="/earnings"
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 									role="menuitem">Earnings</a
 								>
 							</li>
 							<li>
 								<a
-									href="#"
+									href="/authentication/sign-out"
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 									role="menuitem">Sign out</a
 								>
