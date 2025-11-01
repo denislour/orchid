@@ -1,10 +1,14 @@
-/* eslint-disable no-param-reassign */
 import { faker } from '@faker-js/faker';
 import { RANDOMIZE, API_URL } from '../app/constants';
 import type { Users, User } from '../types/entities';
 
-// Types for BE API response
-interface UsersResponse {
+interface StandardApiResponse<T> {
+	success: boolean;
+	message: string;
+	data: T;
+}
+
+interface PaginatedApiResponse {
 	success: boolean;
 	message: string;
 	data: {
@@ -16,202 +20,180 @@ interface UsersResponse {
 	};
 }
 
-// Fetch users from BE API
-async function fetchUsersFromAPI(
-	page: number = 1,
-	limit: number = 100,
-): Promise<Users> {
-	const apiUrl = `${API_URL}users?page=${page}&limit=${limit}`;
-	const response = await fetch(apiUrl);
+type ApiResponse =
+	| StandardApiResponse<Users>
+	| PaginatedApiResponse
+	| Users
+	| User;
 
-	if (!response.ok) {
-		throw new Error(
-			`Failed to fetch users: ${response.status} ${response.statusText}`,
-		);
+function extractUsers(result: ApiResponse): Users {
+	if (
+		'data' in result &&
+		typeof result.data === 'object' &&
+		result.data !== null &&
+		'items' in result.data &&
+		Array.isArray(result.data.items)
+	) {
+		return result.data.items;
 	}
-
-	const result = (await response.json()) as UsersResponse;
-	return result.data.items;
+	if ('data' in result && Array.isArray(result.data)) {
+		return result.data;
+	}
+	if (Array.isArray(result)) {
+		return result;
+	}
+	throw new Error('Invalid API response format - expected user array');
 }
 
-// Legacy function to maintain compatibility with existing code
-async function loadUsersData(): Promise<Users> {
-	// Force API call - remove fallback for debugging
-	return fetchUsersFromAPI();
+function extractPaginationData(
+	result: ApiResponse,
+	fallbackPage: number,
+	fallbackLimit: number,
+) {
+	if (
+		'data' in result &&
+		typeof result.data === 'object' &&
+		result.data !== null &&
+		'items' in result.data
+	) {
+		const paginatedData = result.data as {
+			items: Users;
+			total: number;
+			page: number;
+			limit: number;
+		};
+		return {
+			total: paginatedData.total || 0,
+			page: paginatedData.page || fallbackPage,
+			limit: paginatedData.limit || fallbackLimit,
+		};
+	}
+	return {
+		total: 0,
+		page: fallbackPage,
+		limit: fallbackLimit,
+	};
+}
 
-	// Original fallback logic (commented out for debugging)
-	// try {
-	// 	// Try to fetch from API first
-	// 	return await fetchUsersFromAPI();
-	// } catch (error) {
-	// API failed, using fallback
-	// 	// Fallback to local JSON if API fails
-	// 	try {
-	// 		const { default: data } = await import('../../data/users.json', {
-	// 			assert: { type: 'json' },
-	// 		});
-	// 		console.log('📁 Using local JSON data');
-	// 		return data as Users;
-	// 	} catch (localError) {
-	// 		console.error('❌ Local JSON also failed:', localError);
-	// 		return [];
-	// 	}
-	// }
+function randomizeUserData(users: Users): Users {
+	return users.map((p) => ({
+		...p,
+		name: faker.name.fullName(),
+		email: faker.internet.email(),
+		position: faker.name.jobTitle(),
+		country: faker.address.country(),
+	}));
+}
+
+async function fetchFromAPI(url: string): Promise<ApiResponse> {
+	const response = await fetch(url);
+	if (!response.ok) {
+		throw new Error(`API Error: ${response.status} ${response.statusText}`);
+	}
+	return response.json() as unknown as ApiResponse;
+}
+
+async function fetchFromAPIWithBody(
+	url: string,
+	options: RequestInit,
+): Promise<ApiResponse> {
+	const response = await fetch(url, {
+		headers: { 'Content-Type': 'application/json' },
+		...options,
+	});
+	if (!response.ok) {
+		throw new Error(`API Error: ${response.status} ${response.statusText}`);
+	}
+	return response.json() as unknown as ApiResponse;
 }
 
 export async function getUsers(randomize = RANDOMIZE): Promise<Users> {
-	const data = await loadUsersData();
-
-	const result = randomize
-		? data.map((p) => {
-				p.name = faker.name.fullName();
-				p.email = faker.internet.email();
-				p.position = faker.name.jobTitle();
-				p.country = faker.address.country();
-				return p;
-			})
-		: data;
-
-	return result;
+	const url = `${API_URL}users?page=1&limit=100`;
+	const result = await fetchFromAPI(url);
+	const users = extractUsers(result);
+	return randomize ? randomizeUserData(users) : users;
 }
 
-// New function to get users with pagination from BE
 export async function getUsersPaginated(
 	page: number = 1,
 	limit: number = 10,
 	randomize = RANDOMIZE,
 ) {
-	try {
-		const response = await fetch(`${API_URL}users?page=${page}&limit=${limit}`);
+	const url = `${API_URL}users?page=${page}&limit=${limit}`;
+	const result = await fetchFromAPI(url);
+	const users = extractUsers(result);
+	const pagination = extractPaginationData(result, page, limit);
 
-		if (!response.ok) {
-			throw new Error(
-				`Failed to fetch users: ${response.status} ${response.statusText}`,
-			);
-		}
-
-		const result = (await response.json()) as UsersResponse;
-
-		// Apply randomization if requested
-		const data = randomize
-			? result.data.items.map((p) => {
-					p.name = faker.name.fullName();
-					p.email = faker.internet.email();
-					p.position = faker.name.jobTitle();
-					p.country = faker.address.country();
-					return p;
-				})
-			: result.data.items;
-
-		return {
-			data,
-			total: result.data.total,
-			page: result.data.page,
-			limit: result.data.limit,
-		};
-	} catch (error) {
-		// Failed to fetch paginated users from API
-
-		// Fallback to local data with pagination simulation
-		const localData = await loadUsersData();
-		const startIndex = (page - 1) * limit;
-		const endIndex = startIndex + limit;
-		const paginatedData = localData.slice(startIndex, endIndex);
-
-		return {
-			data: randomize
-				? paginatedData.map((p) => ({
-						...p,
-						name: faker.name.fullName(),
-						email: faker.internet.email(),
-						position: faker.name.jobTitle(),
-						country: faker.address.country(),
-					}))
-				: paginatedData,
-			total: localData.length,
-			page,
-			limit,
-		};
-	}
+	return {
+		data: randomize ? randomizeUserData(users) : users,
+		...pagination,
+	};
 }
 
-// Function to get a single user by ID from BE
 export async function getUserById(id: number): Promise<User | null> {
 	try {
-		const response = await fetch(`${API_URL}users/${id}`);
+		const result = await fetchFromAPI(`${API_URL}users/${id}`);
 
-		if (!response.ok) {
-			if (response.status === 404) {
-				return null;
-			}
-			throw new Error(
-				`Failed to fetch user: ${response.status} ${response.statusText}`,
-			);
+		if (
+			'data' in result &&
+			typeof result.data === 'object' &&
+			result.data !== null &&
+			!('items' in result.data)
+		) {
+			return result.data as unknown as User;
+		}
+		if ('id' in result) {
+			return result;
 		}
 
-		const result = (await response.json()) as { success: boolean; data: User };
-		return result.data;
+		throw new Error('Invalid user response format');
 	} catch (error) {
-		// Failed to fetch user by ID from API
-
-		// Fallback to local data
-		const localData = await loadUsersData();
-		return localData.find((user) => user.id === id) || null;
+		if (error instanceof Error && error.message.includes('404')) {
+			return null;
+		}
+		throw error;
 	}
 }
 
-// Function to create a new user via BE API
 export async function createUser(userData: Partial<User>): Promise<User> {
-	const response = await fetch(`${API_URL}users`, {
+	const result = await fetchFromAPIWithBody(`${API_URL}users`, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
 		body: JSON.stringify(userData),
 	});
 
-	if (!response.ok) {
-		throw new Error(
-			`Failed to create user: ${response.status} ${response.statusText}`,
-		);
+	if (
+		'data' in result &&
+		typeof result.data === 'object' &&
+		result.data !== null &&
+		!('items' in result.data)
+	) {
+		return result.data as unknown as User;
 	}
-
-	const result = (await response.json()) as { success: boolean; data: User };
-	return result.data;
+	throw new Error('Invalid create user response format');
 }
 
-// Function to update a user via BE API
 export async function updateUser(
 	id: number,
 	userData: Partial<User>,
 ): Promise<User> {
-	const response = await fetch(`${API_URL}users/${id}`, {
+	const result = await fetchFromAPIWithBody(`${API_URL}users/${id}`, {
 		method: 'PUT',
-		headers: {
-			'Content-Type': 'application/json',
-		},
 		body: JSON.stringify(userData),
 	});
 
-	if (!response.ok) {
-		throw new Error(
-			`Failed to update user: ${response.status} ${response.statusText}`,
-		);
+	if (
+		'data' in result &&
+		typeof result.data === 'object' &&
+		result.data !== null &&
+		!('items' in result.data)
+	) {
+		return result.data as unknown as User;
 	}
-
-	const result = (await response.json()) as { success: boolean; data: User };
-	return result.data;
+	throw new Error('Invalid update user response format');
 }
 
-// Function to delete a user via BE API
 export async function deleteUser(id: number): Promise<void> {
-	const response = await fetch(`${API_URL}users/${id}`, {
+	await fetchFromAPIWithBody(`${API_URL}users/${id}`, {
 		method: 'DELETE',
 	});
-
-	if (!response.ok) {
-		throw new Error(
-			`Failed to delete user: ${response.status} ${response.statusText}`,
-		);
-	}
 }
