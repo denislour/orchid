@@ -1,0 +1,9 @@
+---
+import CrudGeneric from '@/modules/CrudGeneric.astro';
+import LayoutSidebar from '@/app/LayoutSidebar.astro';
+import { productsConfig } from '@/entities';
+
+<LayoutSidebar>
+	<CrudGeneric entityType="products" />
+</LayoutSidebar>;
+---

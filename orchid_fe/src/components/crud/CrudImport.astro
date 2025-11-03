@@ -1,0 +1,514 @@
+---
+import type { EntityConfig, ImportConfig } from '@/entities/types';
+
+interface Props {
+  config: EntityConfig;
+  importConfig: ImportConfig;
+  isOpen: boolean;
+  onClose: () => void;
+  onImport: (file: File, mapping?: Record<string, string>) => Promise<any>;
+}
+
+const { config, importConfig, isOpen, onClose, onImport } = Astro.props;
+
+// Helper function to get file format icons
+function getFileIcon(format: string) {
+  const icons = {
+    csv: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/><path d="M9 4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0V8H7a1 1 0 110-2h1V5a1 1 0 011-1z"/></svg>',
+    xlsx: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>',
+    json: '<svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+  };
+  return icons[format] || '';
+}
+---
+
+<!-- Import Modal -->
+<div id={`${config.type}-import-modal`} class={`fixed inset-0 z-50 overflow-y-auto ${!isOpen ? 'hidden' : ''}`}>
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick={onClose}></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block w-full max-w-3xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg dark:bg-gray-800">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+          Import {config.pluralName}
+        </h3>
+        <button
+          type="button"
+          onclick={onClose}
+          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Instructions -->
+      <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="w-5 h-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+              Import Instructions
+            </h3>
+            <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Select a file in one of the supported formats: ${importConfig.allowedFormats.join(', ')}</li>
+                <li>Make sure your file headers match the required field names</li>
+                <li>Required fields: ${importConfig.validation?.requiredFields?.join(', ') || 'None'}</li>
+                <li>Unique fields: ${importConfig.validation?.uniqueFields?.join(', ') || 'None'}</li>
+                {importConfig.templateUrl ? `
+                  <li>Download the template file to ensure correct format</li>
+                ` : ''}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Template -->
+      {importConfig.templateUrl ? `
+        <div class="mb-6">
+          <button
+            type="button"
+            onclick="window.open('${importConfig.templateUrl}', '_blank')"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-100 border border-blue-300 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/30"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Template
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- File Upload Form -->
+      <form id={`${config.type}-import-form`} class="space-y-4">
+        <!-- File Input -->
+        <div>
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Choose File
+          </label>
+          <div class="flex items-center justify-center w-full">
+            <label for={`${config.type}-import-file`} class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+              <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span class="font-semibold">Click to upload</span> or drag and drop
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  ${importConfig.allowedFormats.map(format => format.toUpperCase()).join(', ')} files only
+                </p>
+              </div>
+              <input 
+                id={`${config.type}-import-file`} 
+                type="file" 
+                class="hidden" 
+                accept={importConfig.allowedFormats.map(format => `.${format}`).join(',')}
+              />
+            </label>
+          </div>
+          <div id="file-info" class="mt-2 hidden">
+            <div class="flex items-center p-2 bg-gray-100 rounded-lg dark:bg-gray-700">
+              <span id="file-icon" class="mr-2"></span>
+              <span id="file-name" class="text-sm text-gray-700 dark:text-gray-300"></span>
+              <button type="button" id="remove-file" class="ml-auto text-red-500 hover:text-red-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Field Mapping (for CSV/Excel) -->
+        <div id="field-mapping" class="hidden space-y-4">
+          <h4 class="text-md font-medium text-gray-900 dark:text-white">Field Mapping</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Map your file columns to the correct fields in the system
+          </p>
+          
+          <div id="mapping-container" class="space-y-2">
+            <!-- Mapping will be populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Import Options -->
+        <div class="space-y-4">
+          <h4 class="text-md font-medium text-gray-900 dark:text-white">Import Options</h4>
+          
+          <div class="space-y-3">
+            <label class="flex items-center">
+              <input type="radio" name="import-mode" value="create-only" checked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+              <span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Create new records only</span>
+            </label>
+            
+            <label class="flex items-center">
+              <input type="radio" name="import-mode" value="update-existing" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+              <span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Update existing records</span>
+            </label>
+            
+            <label class="flex items-center">
+              <input type="radio" name="import-mode" value="create-update" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+              <span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Create new and update existing records</span>
+            </label>
+          </div>
+
+          <div class="flex items-center">
+            <input type="checkbox" id="skip-validation" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="skip-validation" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+              Skip validation (not recommended)
+            </label>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end pt-4 space-x-3 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onclick={onClose}
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            id="import-button"
+            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            <span class="flex items-center">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Import {config.pluralName}
+            </span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Import Progress (hidden initially) -->
+      <div id="import-progress" class="hidden">
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-900 dark:text-white">Import Progress</span>
+            <span id="progress-percentage" class="text-sm text-gray-600 dark:text-gray-400">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+            <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        
+        <div id="import-results" class="space-y-2">
+          <!-- Results will be populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class CrudImport {
+    constructor(element, config, importConfig, onImport) {
+      this.element = element;
+      this.config = config;
+      this.importConfig = importConfig;
+      this.onImport = onImport;
+      this.file = null;
+      this.headers = [];
+      
+      this.init();
+    }
+    
+    init() {
+      const fileInput = document.getElementById(`${this.config.type}-import-file`);
+      const removeFileBtn = document.getElementById('remove-file');
+      const form = document.getElementById(`${this.config.type}-import-form`);
+      
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+      }
+      
+      if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', () => this.clearFile());
+      }
+      
+      if (form) {
+        form.addEventListener('submit', (e) => this.handleImport(e));
+      }
+      
+      // Drag and drop
+      const dropZone = fileInput.parentElement;
+      if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+          
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            fileInput.files = files;
+            this.handleFileSelect({ target: fileInput });
+          }
+        });
+      }
+    }
+    
+    handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Validate file type
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      if (!this.importConfig.allowedFormats.includes(fileExtension)) {
+        this.showError(`Unsupported file type. Please upload ${this.importConfig.allowedFormats.join(', ')}.`);
+        this.clearFile();
+        return;
+      }
+      
+      this.file = file;
+      this.displayFileInfo(file);
+      
+      // For CSV/Excel, read headers to enable mapping
+      if (['csv', 'xlsx'].includes(fileExtension)) {
+        this.readFileHeaders(file);
+      } else {
+        document.getElementById('field-mapping').classList.add('hidden');
+      }
+      
+      // Enable import button
+      document.getElementById('import-button').disabled = false;
+    }
+    
+    displayFileInfo(file) {
+      const fileInfo = document.getElementById('file-info');
+      const fileName = document.getElementById('file-name');
+      const fileIcon = document.getElementById('file-icon');
+      
+      fileInfo.classList.remove('hidden');
+      fileName.textContent = file.name;
+      
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      fileIcon.innerHTML = this.getFileIcon(fileExtension);
+    }
+    
+    getFileIcon(format) {
+      const icons = {
+        csv: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/><path d="M9 4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0V8H7a1 1 0 110-2h1V5a1 1 0 011-1z"/></svg>',
+        xlsx: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>',
+        json: '<svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+      };
+      return icons[format] || '';
+    }
+    
+    async readFileHeaders(file) {
+      // This is a simplified version - in production, you'd use proper libraries
+      // like Papa Parse for CSV and xlsx for Excel files
+      try {
+        const text = await file.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length > 0) {
+          this.headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+          this.showFieldMapping();
+        }
+      } catch (error) {
+        console.error('Error reading file headers:', error);
+      }
+    }
+    
+    showFieldMapping() {
+      const mappingContainer = document.getElementById('mapping-container');
+      const fieldMapping = document.getElementById('field-mapping');
+      
+      if (!mappingContainer) return;
+      
+      fieldMapping.classList.remove('hidden');
+      
+      // Create mapping UI
+      const mappingHTML = this.headers.map(header => `
+        <div class="flex items-center space-x-3">
+          <label class="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            "${header}"
+          </label>
+          <span class="text-gray-500">→</span>
+          <select class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" data-header="${header}">
+            <option value="">Ignore field</option>
+            ${this.config.fields.map(field => `
+              <option value="${field.name}" ${this.importConfig.mapping?.[header] === field.name ? 'selected' : ''}>
+                ${field.label}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      `).join('');
+      
+      mappingContainer.innerHTML = mappingHTML;
+    }
+    
+    clearFile() {
+      this.file = null;
+      this.headers = [];
+      
+      const fileInput = document.getElementById(`${this.config.type}-import-file`);
+      const fileInfo = document.getElementById('file-info');
+      const fieldMapping = document.getElementById('field-mapping');
+      const importButton = document.getElementById('import-button');
+      
+      if (fileInput) fileInput.value = '';
+      if (fileInfo) fileInfo.classList.add('hidden');
+      if (fieldMapping) fieldMapping.classList.add('hidden');
+      if (importButton) importButton.disabled = true;
+    }
+    
+    async handleImport(e) {
+      e.preventDefault();
+      
+      if (!this.file) {
+        this.showError('Please select a file to import.');
+        return;
+      }
+      
+      // Get field mapping if applicable
+      let mapping = null;
+      if (this.headers.length > 0) {
+        mapping = {};
+        document.querySelectorAll('#mapping-container select').forEach(select => {
+          const header = select.dataset.header;
+          const field = select.value;
+          if (field) {
+            mapping[header] = field;
+          }
+        });
+      }
+      
+      // Get import options
+      const importMode = document.querySelector('input[name="import-mode"]:checked')?.value;
+      const skipValidation = document.getElementById('skip-validation')?.checked;
+      
+      try {
+        // Show progress
+        this.showProgress();
+        
+        // Call import function
+        const result = await this.onImport(this.file, mapping, {
+          mode: importMode,
+          skipValidation
+        });
+        
+        // Show results
+        this.showResults(result);
+        
+        // Close modal after delay
+        setTimeout(() => {
+          this.clearFile();
+          this.element.classList.add('hidden');
+        }, 3000);
+        
+      } catch (error) {
+        this.hideProgress();
+        this.showError(`Import failed: ${error.message}`);
+      }
+    }
+    
+    showProgress() {
+      const form = document.getElementById(`${this.config.type}-import-form`);
+      const progress = document.getElementById('import-progress');
+      
+      form.classList.add('hidden');
+      progress.classList.remove('hidden');
+      
+      // Simulate progress (in real app, this would come from actual import progress)
+      let progressPercent = 0;
+      const progressBar = document.getElementById('progress-bar');
+      const progressPercentage = document.getElementById('progress-percentage');
+      
+      const interval = setInterval(() => {
+        progressPercent += Math.random() * 20;
+        if (progressPercent >= 100) {
+          progressPercent = 100;
+          clearInterval(interval);
+        }
+        
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
+        if (progressPercentage) progressPercentage.textContent = `${Math.round(progressPercent)}%`;
+      }, 200);
+    }
+    
+    hideProgress() {
+      const form = document.getElementById(`${this.config.type}-import-form`);
+      const progress = document.getElementById('import-progress');
+      
+      form.classList.remove('hidden');
+      progress.classList.add('hidden');
+    }
+    
+    showResults(result) {
+      const resultsContainer = document.getElementById('import-results');
+      
+      if (!resultsContainer) return;
+      
+      const resultsHTML = `
+        <div class="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
+                Import Complete
+              </h3>
+              <div class="mt-2 text-sm text-green-700 dark:text-green-300">
+                <p>Successfully imported ${result.successful || 0} records.</p>
+                ${result.errors && result.errors.length > 0 ? `
+                  <p class="text-yellow-600 dark:text-yellow-400">Failed to import ${result.errors.length} records.</p>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      resultsContainer.innerHTML = resultsHTML;
+    }
+    
+    showError(message) {
+      // Create or update error message
+      let errorElement = this.element.querySelector('.import-error');
+      if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'import-error p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800';
+        this.element.querySelector('.bg-white, .dark\\:bg-gray-800').prepend(errorElement);
+      }
+      errorElement.textContent = message;
+      
+      // Remove error after 5 seconds
+      setTimeout(() => {
+        if (errorElement) errorElement.remove();
+      }, 5000);
+    }
+  }
+  
+  // Initialize import form when modal is opened
+  document.addEventListener('DOMContentLoaded', () => {
+    // This will be initialized by the parent component
+  });
+</script>

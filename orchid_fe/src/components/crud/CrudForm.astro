@@ -1,0 +1,446 @@
+---
+import type {
+	EntityConfig,
+	BaseEntity,
+	FieldConfig,
+	FormState,
+} from '@/entities/types';
+
+interface Props {
+	config: EntityConfig;
+	entity?: BaseEntity;
+	mode: 'create' | 'edit' | 'bulk-edit';
+	isOpen: boolean;
+	onClose: () => void;
+	onSubmit: (data: Record<string, any>) => Promise<void>;
+}
+
+const { config, entity, mode, isOpen, onClose, onSubmit } = Astro.props;
+
+// Helper function to generate form field
+function generateFormField(field: FieldConfig, entity?: BaseEntity) {
+	const value =
+		entity?.[field.name as keyof BaseEntity] || field.defaultValue || '';
+
+	switch (field.type) {
+		case 'text':
+		case 'email':
+		case 'number':
+			return `
+        <input
+          type="${field.type}"
+          id="${field.name}"
+          name="${field.name}"
+          value="${value}"
+          placeholder="${field.placeholder || ''}"
+          ${field.required ? 'required' : ''}
+          ${field.disabled ? 'disabled' : ''}
+          ${
+						field.validation
+							? `
+            min="${field.validation.min || ''}"
+            max="${field.validation.max || ''}"
+            pattern="${field.validation.pattern || ''}"
+            title="${field.validation.message || ''}"
+          `
+							: ''
+					}
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        />
+      `;
+
+		case 'textarea':
+			return `
+        <textarea
+          id="${field.name}"
+          name="${field.name}"
+          placeholder="${field.placeholder || ''}"
+          rows="4"
+          ${field.required ? 'required' : ''}
+          ${field.disabled ? 'disabled' : ''}
+          ${
+						field.validation
+							? `
+            minlength="${field.validation.min || ''}"
+            maxlength="${field.validation.max || ''}"
+            title="${field.validation.message || ''}"
+          `
+							: ''
+					}
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        >${value}</textarea>
+      `;
+
+		case 'select':
+			return `
+        <select
+          id="${field.name}"
+          name="${field.name}"
+          ${field.required ? 'required' : ''}
+          ${field.disabled ? 'disabled' : ''}
+          ${field.multiple ? 'multiple' : ''}
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        >
+          ${!field.required && !field.multiple ? '<option value="">Select an option</option>' : ''}
+          ${field.options
+						?.map(
+							(opt) => `
+            <option value="${opt.value}" ${value.toString() === opt.value.toString() ? 'selected' : ''}>
+              ${opt.label}
+            </option>
+          `,
+						)
+						.join('')}
+        </select>
+      `;
+
+		case 'checkbox':
+			return `
+        <div class="flex items-center">
+          <input
+            id="${field.name}"
+            name="${field.name}"
+            type="checkbox"
+            ${value ? 'checked' : ''}
+            ${field.disabled ? 'disabled' : ''}
+            class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          />
+          <label for="${field.name}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+            ${field.label}
+          </label>
+        </div>
+      `;
+
+		case 'radio':
+			return `
+        <div class="space-y-2">
+          ${field.options
+						?.map(
+							(opt) => `
+            <div class="flex items-center">
+              <input
+                id="${field.name}_${opt.value}"
+                name="${field.name}"
+                type="radio"
+                value="${opt.value}"
+                ${value.toString() === opt.value.toString() ? 'checked' : ''}
+                ${field.disabled ? 'disabled' : ''}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label for="${field.name}_${opt.value}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                ${opt.label}
+              </label>
+            </div>
+          `,
+						)
+						.join('')}
+        </div>
+      `;
+
+		case 'date':
+			return `
+        <input
+          type="date"
+          id="${field.name}"
+          name="${field.name}"
+          value="${value}"
+          ${field.required ? 'required' : ''}
+          ${field.disabled ? 'disabled' : ''}
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        />
+      `;
+
+		case 'file':
+			return `
+        <input
+          type="file"
+          id="${field.name}"
+          name="${field.name}"
+          ${field.required ? 'required' : ''}
+          ${field.disabled ? 'disabled' : ''}
+          ${field.multiple ? 'multiple' : ''}
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        />
+      `;
+
+		default:
+			return '';
+	}
+}
+---
+
+<!-- Modal -->
+<div
+	id={`${config.type}-${mode}-modal`}
+	class={`fixed inset-0 z-50 overflow-y-auto ${!isOpen ? 'hidden' : ''}`}
+>
+	<div
+		class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+	>
+		<!-- Background overlay -->
+		<div
+			class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+			onclick="${onClose ? `(${onClose})()` : 'console.log(\'close\')'}"
+		>
+		</div>
+
+		<!-- Modal panel -->
+		<div
+			class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg dark:bg-gray-800"
+		>
+			<!-- Header -->
+			<div class="flex items-center justify-between mb-4">
+				<h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+					{
+						mode === 'create'
+							? `Create ${config.displayName}`
+							: mode === 'edit'
+								? `Edit ${config.displayName}`
+								: `Bulk Edit ${config.pluralName}`
+					}
+				</h3>
+				<button
+					type="button"
+					onclick="${onClose ? `(${onClose})()` : 'console.log(\'close\')'}"
+					class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+				>
+					<svg
+						class="w-6 h-6"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+
+			<!-- Form -->
+			<form id={`${config.type}-${mode}-form`} class="space-y-4">
+				{
+					config.fields
+						.map((field) => {
+							// Skip some fields for bulk edit
+							if (
+								mode === 'bulk-edit' &&
+								['id', 'email', 'avatar'].includes(field.name)
+							) {
+								return '';
+							}
+
+							return `
+            <div>
+              ${
+								field.type !== 'checkbox'
+									? `
+                <label for="${field.name}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
+                </label>
+              `
+									: ''
+							}
+              ${generateFormField(field, entity)}
+              ${
+								field.validation?.message
+									? `
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  ${field.validation.message}
+                </p>
+              `
+									: ''
+							}
+            </div>
+          `;
+						})
+						.join('')
+				}
+
+				<!-- Bulk edit specific fields -->
+				${
+					mode === 'bulk-edit'
+						? `
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Bulk Edit Mode
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <p>Only the fields you modify will be updated for all selected items. Empty fields will be ignored.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+						: ''
+				}
+
+				<!-- Form Actions -->
+				<div
+					class="flex justify-end pt-4 space-x-3 border-t border-gray-200 dark:border-gray-700"
+				>
+					<button
+						type="button"
+						onclick="${onClose ? `(${onClose})()` : 'console.log(\'close\')'}"
+						class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700"
+					>
+						{
+							mode === 'create'
+								? `Create ${config.displayName}`
+								: mode === 'edit'
+									? 'Save Changes'
+									: 'Update Selected'
+						}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+	// Form validation and submission
+	class CrudForm {
+		constructor(element, config, mode, onSubmit) {
+			this.element = element;
+			this.config = config;
+			this.mode = mode;
+			this.onSubmit = onSubmit;
+			this.form = element.querySelector('form');
+
+			this.init();
+		}
+
+		init() {
+			if (this.form) {
+				this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+
+				// Add real-time validation
+				this.form
+					.querySelectorAll('input, textarea, select')
+					.forEach((field) => {
+						field.addEventListener('blur', () => this.validateField(field));
+						field.addEventListener('input', () => this.clearFieldError(field));
+					});
+			}
+		}
+
+		validateField(field) {
+			const isValid = field.checkValidity();
+			const errorElement = field.parentNode.querySelector('.error-message');
+
+			if (!isValid && !errorElement) {
+				const error = document.createElement('p');
+				error.className =
+					'error-message mt-1 text-sm text-red-600 dark:text-red-400';
+				error.textContent = field.validationMessage || 'This field is required';
+				field.parentNode.appendChild(error);
+				field.classList.add('border-red-500');
+			} else if (isValid && errorElement) {
+				errorElement.remove();
+				field.classList.remove('border-red-500');
+			}
+
+			return isValid;
+		}
+
+		clearFieldError(field) {
+			const errorElement = field.parentNode.querySelector('.error-message');
+			if (errorElement) {
+				errorElement.remove();
+				field.classList.remove('border-red-500');
+			}
+		}
+
+		async handleSubmit(e) {
+			e.preventDefault();
+
+			// Validate all fields
+			let isValid = true;
+			this.form.querySelectorAll('input, textarea, select').forEach((field) => {
+				if (!this.validateField(field)) {
+					isValid = false;
+				}
+			});
+
+			if (!isValid) return;
+
+			// Collect form data
+			const formData = new FormData(this.form);
+			const data = {};
+
+			for (const [key, value] of formData.entries()) {
+				// Handle checkboxes and multiple selects
+				if (data[key]) {
+					if (Array.isArray(data[key])) {
+						data[key].push(value);
+					} else {
+						data[key] = [data[key], value];
+					}
+				} else {
+					data[key] = value;
+				}
+			}
+
+			// Handle special cases
+			this.config.fields.forEach((field) => {
+				if (field.type === 'checkbox' && !data[field.name]) {
+					data[field.name] = false;
+				}
+				if (field.type === 'number' && data[field.name]) {
+					data[field.name] = parseFloat(data[field.name]);
+				}
+			});
+
+			try {
+				await this.onSubmit(data);
+				this.closeModal();
+			} catch (error) {
+				console.error('Form submission error:', error);
+				this.showError('Failed to submit form. Please try again.');
+			}
+		}
+
+		closeModal() {
+			// Trigger close callback
+			if (typeof window.closeModal === 'function') {
+				window.closeModal();
+			}
+			this.element.classList.add('hidden');
+		}
+
+		showError(message) {
+			// Create or update error message
+			let errorElement = this.element.querySelector('.form-error');
+			if (!errorElement) {
+				errorElement = document.createElement('div');
+				errorElement.className =
+					'form-error p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800';
+				this.element
+					.querySelector('.bg-white, .dark\\:bg-gray-800')
+					.prepend(errorElement);
+			}
+			errorElement.textContent = message;
+		}
+	}
+
+	// Initialize form when DOM is ready
+	document.addEventListener('DOMContentLoaded', () => {
+		// This will be initialized by the parent component
+	});
+</script>
